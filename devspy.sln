@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35828.75
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "devspy", "devspy\devspy.vcxproj", "{8BC0DB91-FB85-4358-B6E7-3EA409B697A0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "devspy_hook", "devspy_hook\devspy_hook.vcxproj", "{2107C44D-E9B9-46A0-8A66-B0595F4411EC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		directory.build.props = directory.build.props
+		directory.build.targets = directory.build.targets
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8BC0DB91-FB85-4358-B6E7-3EA409B697A0}.Debug|x64.ActiveCfg = Debug|x64
+		{8BC0DB91-FB85-4358-B6E7-3EA409B697A0}.Debug|x64.Build.0 = Debug|x64
+		{8BC0DB91-FB85-4358-B6E7-3EA409B697A0}.Debug|x86.ActiveCfg = Debug|Win32
+		{8BC0DB91-FB85-4358-B6E7-3EA409B697A0}.Debug|x86.Build.0 = Debug|Win32
+		{8BC0DB91-FB85-4358-B6E7-3EA409B697A0}.Release|x64.ActiveCfg = Release|x64
+		{8BC0DB91-FB85-4358-B6E7-3EA409B697A0}.Release|x64.Build.0 = Release|x64
+		{8BC0DB91-FB85-4358-B6E7-3EA409B697A0}.Release|x86.ActiveCfg = Release|Win32
+		{8BC0DB91-FB85-4358-B6E7-3EA409B697A0}.Release|x86.Build.0 = Release|Win32
+		{2107C44D-E9B9-46A0-8A66-B0595F4411EC}.Debug|x64.ActiveCfg = Debug|x64
+		{2107C44D-E9B9-46A0-8A66-B0595F4411EC}.Debug|x64.Build.0 = Debug|x64
+		{2107C44D-E9B9-46A0-8A66-B0595F4411EC}.Debug|x86.ActiveCfg = Debug|Win32
+		{2107C44D-E9B9-46A0-8A66-B0595F4411EC}.Debug|x86.Build.0 = Debug|Win32
+		{2107C44D-E9B9-46A0-8A66-B0595F4411EC}.Release|x64.ActiveCfg = Release|x64
+		{2107C44D-E9B9-46A0-8A66-B0595F4411EC}.Release|x64.Build.0 = Release|x64
+		{2107C44D-E9B9-46A0-8A66-B0595F4411EC}.Release|x86.ActiveCfg = Release|Win32
+		{2107C44D-E9B9-46A0-8A66-B0595F4411EC}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3CBF1807-7B4F-4D2A-8589-698FC8383A1D}
+	EndGlobalSection
+EndGlobal
