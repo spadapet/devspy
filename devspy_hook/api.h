@@ -7,11 +7,13 @@
 #endif
 
 #ifdef _WIN64
-#define UNIQUE_NAME_SUFFIX L"_64_PS"
+#define PROCESS_BITS_SZ L"64"
 #else
-#define UNIQUE_NAME_SUFFIX L"_32_PS"
+#define PROCESS_BITS_SZ L"32"
 #endif
 
+#define UNIQUE_NAME_SUFFIX L"_" PROCESS_BITS_SZ L"_PS"
+#define APP_EXE_NAME L"DevSpy" PROCESS_BITS_SZ L".exe"
 #define APP_MUTEX_NAME L"DevSpyMutex" UNIQUE_NAME_SUFFIX
 #define DATA_FILE_NAME L"DevSpyDataFile" UNIQUE_NAME_SUFFIX
 #define DATA_MUTEX_NAME L"DevSpyDataMutex" UNIQUE_NAME_SUFFIX
@@ -22,16 +24,16 @@
 
 typedef LOG_ALIGN struct log_entry_t
 {
-    UINT index; // 4
-    UINT data_index; // 4
-    UINT data_count; // 4
-    UINT message; // 4
-    HWND hwnd; // 4/8
-    WPARAM wp; // 4/8
-    LPARAM lp; // 4/8
-    DWORD process_id; // 4
-    DWORD thread_id; // 4
-    // Total: 36/48
+	UINT index; // 4
+	UINT data_index; // 4
+	UINT data_count; // 4
+	UINT message; // 4
+	HWND hwnd; // 4/8
+	WPARAM wp; // 4/8
+	LPARAM lp; // 4/8
+	DWORD process_id; // 4
+	DWORD thread_id; // 4
+	// Total: 36/48
 } log_entry_t;
 
 typedef LOG_ALIGN struct log_data_t
@@ -47,7 +49,7 @@ typedef LOG_ALIGN struct app_data_t
 	UINT active;
 	UINT write_index;
 	UINT read_index;
-    // 48 bytes of padding
+	BYTE padding[48];
 	log_entry_t entries[LOG_ENTRY_COUNT];
 	log_data_t data[DATA_ENTRY_COUNT];
 } app_data_t;

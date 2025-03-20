@@ -31,9 +31,28 @@ static BOOL init_dll(HINSTANCE module)
 	{
 		return FALSE;
 	}
+
+	// Validate the app data, prevent loading if the data is wrong
+	BOOL valid_process = FALSE;
+	HANDLE process_handle = app_data->app_process_id ? OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, app_data->app_process_id) : NULL;
+	if (process_handle)
+	{
+		wchar_t file[MAX_PATH * 2];
+		DWORD file_length = GetModuleFileNameEx(process_handle, NULL, file, _countof(file));
+		if (file_length)
+		{
+			const wchar_t* expected_name = L"\\" APP_EXE_NAME;
+			size_t expected_length = wcslen(expected_name);
+			valid_process = file_length >= expected_length && !_wcsnicmp(file + file_length - expected_length, expected_name, expected_length);
+		}
+
+		CloseHandle(process_handle);
+	}
+
+	return valid_process;
 }
 
-static void uninit_dll()
+static void uninit_dll(void)
 {
 	module_handle = NULL;
 
@@ -73,7 +92,7 @@ BOOL APIENTRY DllMain(HMODULE module, DWORD reason, void* reserved)
 
 static LRESULT CALLBACK call_wnd_proc_hook(int code, WPARAM wp, LPARAM lp)
 {
-	if (code >= 0)
+	if (code >= 0 && app_data && app_data->active)
 	{
 		CWPRETSTRUCT* p = (CWPRETSTRUCT*)lp;
 
@@ -90,7 +109,7 @@ static LRESULT CALLBACK call_wnd_proc_hook(int code, WPARAM wp, LPARAM lp)
 
 static LRESULT CALLBACK get_message_hook(int code, WPARAM wp, LPARAM lp)
 {
-	if (code >= 0)
+	if (code >= 0 && app_data && app_data->active)
 	{
 		MSG* p = (MSG*)lp;
 
