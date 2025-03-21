@@ -8,33 +8,33 @@ static app_data_t* app_data = NULL;
 static HHOOK call_wnd_proc_hook_handle = NULL;
 static HHOOK get_message_hook_handle = NULL;
 
-static BOOL init_dll(HINSTANCE module)
+static bool init_dll(HINSTANCE module)
 {
 	module_handle = module;
 	DisableThreadLibraryCalls(module);
 
-	app_mutex = OpenMutex(SYNCHRONIZE, FALSE, APP_MUTEX_NAME);
+	app_mutex = OpenMutex(SYNCHRONIZE, false, APP_MUTEX_NAME);
 	if (!app_mutex)
 	{
 		// Running within the main app
-		return TRUE;
+		return true;
 	}
 
-	app_file = OpenFileMapping(FILE_MAP_WRITE, FALSE, DATA_FILE_NAME);
+	app_file = OpenFileMapping(FILE_MAP_WRITE, false, DATA_FILE_NAME);
 	if (!app_file)
 	{
-		return FALSE;
+		return false;
 	}
 
 	app_data = MapViewOfFile(app_file, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(app_data_t));
 	if (!app_data)
 	{
-		return FALSE;
+		return false;
 	}
 
 	// Validate the app data, prevent loading if the data is wrong
-	BOOL valid_process = FALSE;
-	HANDLE process_handle = app_data->app_process_id ? OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, app_data->app_process_id) : NULL;
+	bool valid_process = false;
+	HANDLE process_handle = app_data->app_process_id ? OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, app_data->app_process_id) : NULL;
 	if (process_handle)
 	{
 		wchar_t file[MAX_PATH * 2];

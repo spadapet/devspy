@@ -5,5 +5,7 @@
 #include <psapi.h>
 
 // CRT
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

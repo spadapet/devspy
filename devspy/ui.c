@@ -2,125 +2,182 @@
 #include "resource.h"
 #include "ui.h"
 
-static const wchar_t* app_class_name = L"DevSpyMainWindow";
-static ATOM app_class = 0;
-static HWND app_window = NULL;
-static HACCEL app_accel = NULL;
-static HINSTANCE app_instance = NULL;
-static app_data_t* app_data = NULL;
-
-static LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
+enum
 {
+	ID_HWND_NULL,
+	ID_HWND_LIST,
+};
+
+static HDWP layout_children(HWND root_hwnd, HDWP defer)
+{
+	const uint32_t swp_flags = SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER;
+
+	RECT client;
+	if (!GetClientRect(root_hwnd, &client))
+	{
+		return defer;
+	}
+
+	for (HWND hwnd = GetWindow(root_hwnd, GW_CHILD); hwnd; hwnd = GetWindow(hwnd, GW_HWNDNEXT))
+	{
+		switch (GetDlgCtrlID(hwnd))
+		{
+		case ID_HWND_LIST:
+			defer = DeferWindowPos(defer, hwnd, NULL, 0, 0, client.right, client.bottom, swp_flags);
+			break;
+		}
+	}
+
+	return defer;
+}
+
+static void layout_root(HWND hwnd)
+{
+	HDWP defer = BeginDeferWindowPos(32);
+	defer = layout_children(hwnd, defer);
+	EndDeferWindowPos(defer);
+}
+
+static LRESULT CALLBACK main_window_proc(HWND hwnd, uint32_t msg, WPARAM wp, LPARAM lp)
+{
+	static app_data_t* app_data = NULL;
+
 	switch (msg)
 	{
+	case WM_CREATE:
+	{
+		const CREATESTRUCT* cs = (CREATESTRUCT*)lp;
+		app_data = (app_data_t*)cs->lpCreateParams;
+	} break;
+
+	case WM_SIZE:
+		if (wp != SIZE_MINIMIZED)
+		{
+			layout_root(hwnd);
+		}
+		break;
+
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
 
 	case WM_NCDESTROY:
-		app_window = NULL;
+		app_data = NULL;
 		break;
+
+	case WM_DPICHANGED:
+	{
+		const RECT* rect = (const RECT*)lp;
+		SetWindowPos(hwnd, NULL,
+			rect->left,
+			rect->top,
+			rect->right - rect->left,
+			rect->bottom - rect->top,
+			SWP_NOZORDER | SWP_NOACTIVATE);
+	} break;
 	}
 
 	return DefWindowProc(hwnd, msg, wp, lp);
 }
 
-static void uninit_ui(void)
+bool init_ui(HINSTANCE instance, app_data_t* data)
 {
-	if (app_window)
+	bool result = true;
+	HWND main_window = NULL;
+
+	const INITCOMMONCONTROLSEX cc =
 	{
-		DestroyWindow(app_window);
-	}
+		.dwSize = sizeof(INITCOMMONCONTROLSEX),
+		.dwICC = 0xFFFF, // all common controls
+	};
 
-	if (app_class)
+	if (!InitCommonControlsEx(&cc))
 	{
-		UnregisterClass(app_class_name, app_instance);
-		app_class = 0;
-	}
-
-	if (app_accel)
-	{
-		DestroyAcceleratorTable(app_accel);
-		app_accel = NULL;
-	}
-
-	app_data = NULL;
-	app_instance = NULL;
-}
-
-BOOL init_ui(HINSTANCE instance, app_data_t* data)
-{
-	BOOL result = TRUE;
-
-	app_instance = instance;
-	app_data = data;
-
-	app_accel = LoadAccelerators(instance, MAKEINTRESOURCE(IDR_APP_ACCELERATOR));
-	if (!app_accel)
-	{
-		result = FALSE;
+		result = false;
 		goto cleanup;
 	}
 
-	WNDCLASS wc =
+	const WNDCLASSEX wc =
 	{
+		.cbSize = sizeof(WNDCLASSEX),
 		.style = CS_HREDRAW | CS_VREDRAW,
-		.lpfnWndProc = MainWindowProc,
+		.lpfnWndProc = main_window_proc,
 		.hInstance = instance,
 		.hIcon = LoadIcon(instance, MAKEINTRESOURCE(IDI_MAIN)),
 		.hCursor = LoadCursor(NULL, IDC_ARROW),
 		.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1),
-		.lpszMenuName = NULL,
-		.lpszClassName = app_class_name,
+		.lpszMenuName = MAKEINTRESOURCE(IDR_MAIN_MENU),
+		.lpszClassName = L"DevSpyMainWindow",
+		.hIconSm = LoadIcon(instance, MAKEINTRESOURCE(IDI_MAIN)),
 	};
 
-	app_class = RegisterClass(&wc);
-	if (!app_class)
+	if (!RegisterClassEx(&wc))
 	{
-		result = FALSE;
+		result = false;
 		goto cleanup;
 	}
 
-	app_window = CreateWindowEx(
+	main_window = CreateWindowEx(
 		0, // exstyle
-		app_class_name,
+		wc.lpszClassName,
 		L"DevSpy",
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 		NULL, // parent
 		NULL, // menu
 		instance,
-		NULL); // param
-	if (!app_window)
+		data); // param
+
+	if (!main_window)
 	{
-		result = FALSE;
+		result = false;
 		goto cleanup;
 	}
 
-	ShowWindow(app_window, SW_SHOWDEFAULT);
+	HWND list_window = CreateWindowEx(
+		0, // exstyle
+		WC_LISTVIEW,
+		L"",
+		WS_CHILD | WS_VISIBLE | LVS_REPORT,
+		0, 0, 0, 0, // position
+		main_window,
+		(HMENU)ID_HWND_LIST,
+		instance,
+		NULL); // param
+
+	if (!list_window)
+	{
+		result = false;
+		goto cleanup;
+	}
+
+	layout_root(main_window);
+	ShowWindow(main_window, SW_SHOWDEFAULT);
 
 cleanup:
-	if (!result)
+	if (!result && main_window)
 	{
-		uninit_ui();
+		DestroyWindow(main_window);
 	}
 
 	return result;
 }
 
-int run_ui(void)
+int run_ui(HINSTANCE instance)
 {
+	HACCEL accel = LoadAccelerators(instance, MAKEINTRESOURCE(IDR_APP_ACCELERATOR));
+
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0))
 	{
-		if (!TranslateAccelerator(msg.hwnd, app_accel, &msg))
+		if (!TranslateAccelerator(msg.hwnd, accel, &msg))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
 	}
 
-	uninit_ui();
+	DestroyAcceleratorTable(accel);
 
 	return (int)msg.wParam;
 }
