@@ -1,6 +1,10 @@
 #include "pch.h"
 #include "ui.h"
 
+#pragma comment(lib, "comctl32.lib")
+#pragma comment(lib, "dwmapi.lib")
+#pragma comment(lib, "uxtheme.lib")
+
 static HANDLE app_mutex = NULL;
 static HANDLE app_file = NULL;
 static app_data_t* app_data = NULL;
