@@ -35,10 +35,5 @@
   <ItemGroup>
     <Image Include="assets\main.ico" />
   </ItemGroup>
-  <ItemDefinitionGroup>
-    <Link>
-      <AdditionalDependencies>comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
